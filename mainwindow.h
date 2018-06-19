@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 
+class SqliteHelper;
+class NfcHelper;
+
 namespace Ui {
 class MainWindow;
 }
@@ -15,8 +18,17 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+private slots:
+    void on_btnAdd_clicked();
+
+private:
+    void test();
+
 private:
     Ui::MainWindow *ui;
+
+    SqliteHelper *sqlHelper;
+    NfcHelper *nfcHelper;
 };
 
 #endif // MAINWINDOW_H

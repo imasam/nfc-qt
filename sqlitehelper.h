@@ -7,9 +7,11 @@ class SqliteHelper
 {
 public:
     SqliteHelper();
+    bool insertUid(char uid[9]);        // 插入一个新的uid
+    QStringList* queryUidList();        // 查询uid列表
 
 private:
-    bool isTableExist();
+    bool initTable();
 
 private:
     QSqlQuery query;

@@ -5,6 +5,7 @@ class NfcHelper
 {
 public:
     NfcHelper();
+    bool setUid(char uid[9]);   // 设置uid
 };
 
 #endif // NFCHELPER_H

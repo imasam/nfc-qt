@@ -48,14 +48,14 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QListView" name="listView"/>
-      </item>
-      <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Card List:</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="lstUid"/>
       </item>
      </layout>
     </item>

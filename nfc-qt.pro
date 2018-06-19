@@ -15,10 +15,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     sqlitehelper.cpp \
-    nfchelper.cpp
+    nfchelper.cpp \
+    nfc-utils.c
 
 HEADERS  += mainwindow.h \
     sqlitehelper.h \
-    nfchelper.h
+    nfchelper.h \
+    nfc-utils.h
 
 FORMS    += mainwindow.ui
