@@ -19,6 +19,7 @@ extern "C" {
 #define SAK_FLAG_ATS_SUPPORTED 0x20
 #define CASCADE_BIT 0x04
 #define MAX_FRAME_LEN 264
+#define MAX_TARGET_COUNT 16
 
 NfcHelper::NfcHelper()
 {
@@ -99,7 +100,8 @@ bool NfcHelper::setUid(char uid[])
         return false;
     }
 
-    if(!init()) return false;
+    if(!init())             // Fail to init nfc
+        return false;
 
     // Configure the CRC
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_CRC, false) < 0) {
@@ -261,6 +263,38 @@ bool NfcHelper::setUid(char uid[])
 
     close();
     return true;
+}
+
+bool NfcHelper::getNewCard(char uid[], int& uidLen)
+{
+    if(!init())     // Fail to init nfc
+        return nullptr;
+
+    int count;
+    nfc_target targets[MAX_TARGET_COUNT];
+
+    nfc_modulation nm;
+    nm.nmt = NMT_ISO14443A;
+    nm.nbr = NBR_106;
+
+
+    // Get All ISO14443A targets
+    if((res = nfc_initiator_list_passive_targets(pnd, nm, targets, MAX_TARGET_COUNT)) >= 0)
+    {
+        int i;
+        for(i = 0; i < count; i++)
+        {
+            nfc_iso14443a_info* info = &(targets[i].nti.nai);
+            char tmp[10];
+            for(int j=0, off=0; j<info->szUidLen; j++)
+            {
+                off += sprintf(tmp+off, "%02x", info->abtuid+j);
+            }
+            qDebug()<<tmp;
+        }
+    }
+
+    close();
 }
 
 

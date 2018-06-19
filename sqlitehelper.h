@@ -7,8 +7,8 @@ class SqliteHelper
 {
 public:
     SqliteHelper();
-    bool insertUid(char uid[9]);        // insert a new uid to database
-    QStringList* queryUidList();        // query all uid from database
+    bool insertUid(char uid[9]);        // Insert a new uid to database
+    QStringList* queryUidList();        // Query all uid from database
 
 private:
     bool initTable();
