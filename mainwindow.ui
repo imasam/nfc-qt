@@ -81,13 +81,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnRestore">
-        <property name="text">
-         <string>Restore Deafult</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btnApply">
         <property name="text">
          <string>Apply Selected Card</string>

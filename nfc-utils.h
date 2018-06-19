@@ -39,6 +39,7 @@
  * @brief Provide some examples shared functions like print, parity calculation, options parsing.
  */
 
+
 #ifndef _EXAMPLES_NFC_UTILS_H_
 #  define _EXAMPLES_NFC_UTILS_H_
 
@@ -102,3 +103,4 @@ void    print_hex_par(const uint8_t *pbtData, const size_t szBits, const uint8_t
 void    print_nfc_target(const nfc_target *pnt, bool verbose);
 
 #endif
+
