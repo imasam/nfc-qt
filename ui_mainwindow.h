@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created by: Qt User Interface Compiler version 5.11.0
+** Created by: Qt User Interface Compiler version 5.3.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -10,8 +10,11 @@
 #define UI_MAINWINDOW_H
 
 #include <QtCore/QVariant>
+#include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QMainWindow>
@@ -40,7 +43,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(542, 337);
+        MainWindow->resize(341, 337);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         verticalLayout_2 = new QVBoxLayout(centralWidget);
@@ -52,6 +55,7 @@ public:
         horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
+        label->setMaximumSize(QSize(100, 16777215));
         QFont font;
         font.setFamily(QStringLiteral("Arial"));
         font.setPointSize(20);
@@ -115,12 +119,12 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "Only One Card", nullptr));
-        label->setText(QApplication::translate("MainWindow", "Current Card: ", nullptr));
-        lblCurrentCard->setText(QApplication::translate("MainWindow", "None", nullptr));
-        label_2->setText(QApplication::translate("MainWindow", "Card List:", nullptr));
-        btnAdd->setText(QApplication::translate("MainWindow", "Add New Card", nullptr));
-        btnApply->setText(QApplication::translate("MainWindow", "Apply Selected Card", nullptr));
+        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "Only One Card", 0));
+        label->setText(QApplication::translate("MainWindow", "Current: ", 0));
+        lblCurrentCard->setText(QApplication::translate("MainWindow", "None", 0));
+        label_2->setText(QApplication::translate("MainWindow", "Card List:", 0));
+        btnAdd->setText(QApplication::translate("MainWindow", "Add New Card", 0));
+        btnApply->setText(QApplication::translate("MainWindow", "Apply Selected Card", 0));
     } // retranslateUi
 
 };

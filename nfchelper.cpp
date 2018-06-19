@@ -250,6 +250,8 @@ bool NfcHelper::setUid(char uid[])
 
     if (!transmit_bits(abtUnlock1, 7)) {
         printf("Warning: Unlock command [1/2]: failed / not acknowledged.\n");
+        close();
+        return false;
     } else {
         if (transmit_bytes(abtUnlock2, 1)) {
             printf("Card unlocked\n");

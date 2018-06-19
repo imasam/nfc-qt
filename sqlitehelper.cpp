@@ -46,7 +46,7 @@ bool SqliteHelper::initTable()
     return true;
 }
 
-bool SqliteHelper::insertUid(QString& name, QString& uid)
+bool SqliteHelper::insertCard(const QString& name, const QString& uid)
 {
     if(!query.exec("INSERT INTO card(name,uid) VALUES('"+ name + "','" + uid + "');"))
     {
@@ -57,7 +57,7 @@ bool SqliteHelper::insertUid(QString& name, QString& uid)
         return true;
 }
 
-char* SqliteHelper::queryUid(QString &name)
+char* SqliteHelper::queryUid(const QString &name)
 {
     char* uid = new char[20];
     query.exec("select uid from card where name='" + name + "';");
@@ -96,7 +96,7 @@ char* SqliteHelper::queryCurrentName()
     return nullptr;
 }
 
-bool SqliteHelper::setCurrentName(QString &name)
+bool SqliteHelper::setCurrentName(const QString &name)
 {
     return query.exec("update current set name='" + name +"';");
 }
