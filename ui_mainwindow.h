@@ -31,10 +31,9 @@ public:
     QLabel *lblCurrentCard;
     QVBoxLayout *verticalLayout;
     QLabel *label_2;
-    QListWidget *lstUid;
+    QListWidget *lstCard;
     QHBoxLayout *horizontalLayout_2;
     QPushButton *btnAdd;
-    QPushButton *btnRestore;
     QPushButton *btnApply;
 
     void setupUi(QMainWindow *MainWindow)
@@ -53,6 +52,10 @@ public:
         horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
+        QFont font;
+        font.setFamily(QStringLiteral("Arial"));
+        font.setPointSize(20);
+        label->setFont(font);
 
         horizontalLayout->addWidget(label);
 
@@ -64,6 +67,7 @@ public:
         sizePolicy.setHeightForWidth(lblCurrentCard->sizePolicy().hasHeightForWidth());
         lblCurrentCard->setSizePolicy(sizePolicy);
         lblCurrentCard->setMinimumSize(QSize(150, 0));
+        lblCurrentCard->setFont(font);
 
         horizontalLayout->addWidget(lblCurrentCard);
 
@@ -78,10 +82,10 @@ public:
 
         verticalLayout->addWidget(label_2);
 
-        lstUid = new QListWidget(centralWidget);
-        lstUid->setObjectName(QStringLiteral("lstUid"));
+        lstCard = new QListWidget(centralWidget);
+        lstCard->setObjectName(QStringLiteral("lstCard"));
 
-        verticalLayout->addWidget(lstUid);
+        verticalLayout->addWidget(lstCard);
 
 
         verticalLayout_2->addLayout(verticalLayout);
@@ -93,11 +97,6 @@ public:
         btnAdd->setObjectName(QStringLiteral("btnAdd"));
 
         horizontalLayout_2->addWidget(btnAdd);
-
-        btnRestore = new QPushButton(centralWidget);
-        btnRestore->setObjectName(QStringLiteral("btnRestore"));
-
-        horizontalLayout_2->addWidget(btnRestore);
 
         btnApply = new QPushButton(centralWidget);
         btnApply->setObjectName(QStringLiteral("btnApply"));
@@ -116,12 +115,11 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", nullptr));
+        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "Only One Card", nullptr));
         label->setText(QApplication::translate("MainWindow", "Current Card: ", nullptr));
         lblCurrentCard->setText(QApplication::translate("MainWindow", "None", nullptr));
         label_2->setText(QApplication::translate("MainWindow", "Card List:", nullptr));
         btnAdd->setText(QApplication::translate("MainWindow", "Add New Card", nullptr));
-        btnRestore->setText(QApplication::translate("MainWindow", "Restore Deafult", nullptr));
         btnApply->setText(QApplication::translate("MainWindow", "Apply Selected Card", nullptr));
     } // retranslateUi
 
