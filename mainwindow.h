@@ -21,14 +21,17 @@ public:
 private slots:
     void on_btnApply_clicked();
 
+    void on_btnAdd_clicked();
+
 private:
-    void test();
+    void generateCards();           // Generate some cards for test
 
 private:
     Ui::MainWindow *ui;
 
     SqliteHelper *sqlHelper;
     NfcHelper *nfcHelper;
+    void addToCardList(const QString& uid);      // Add uid to Uid List in UI
 };
 
 #endif // MAINWINDOW_H

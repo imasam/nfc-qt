@@ -7,8 +7,11 @@ class SqliteHelper
 {
 public:
     SqliteHelper();
-    bool insertUid(char uid[9]);        // Insert a new uid to database
-    QStringList* queryUidList();        // Query all uid from database
+    bool insertUid(QString& name, QString& uid);    // Insert a new uid to database
+    QStringList* queryNameList();                   // Query all uid from database
+    char* queryUid(QString& name);                  // Query uid by name
+    char* queryCurrentName();                       // Get the name of current card
+    bool setCurrentName(QString& name);             // Set the name of current card to database
 
 private:
     bool initTable();

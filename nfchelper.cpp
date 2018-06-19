@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include <nfc/nfc.h>
+#include <QDebug>
 
 extern "C" {
 #include "nfc-utils.h"
@@ -21,9 +21,12 @@ extern "C" {
 #define MAX_FRAME_LEN 264
 #define MAX_TARGET_COUNT 16
 
+static int szRxBits;
+static uint8_t abtRx[MAX_FRAME_LEN];
+
 NfcHelper::NfcHelper()
 {
-
+    currentUid[0] = '\0';
 }
 
 bool NfcHelper::init()
@@ -61,15 +64,12 @@ void NfcHelper::close()
 
 bool NfcHelper::setUid(char uid[])
 {
-    static uint8_t abtRx[MAX_FRAME_LEN];
     static uint8_t abtRawUid[12];
     static uint8_t abtAtqa[2];
     static uint8_t abtSak;
     static uint8_t abtAts[MAX_FRAME_LEN];
     static uint8_t szAts = 0;
     static size_t szCL = 1;     // Always start with Cascade Level 1 (CL1)
-
-    bool    iso_ats_supported = false;
 
     // ISO14443A Anti-Collision Commands
     uint8_t  abtReqa[1] = { 0x26 };
@@ -217,9 +217,9 @@ bool NfcHelper::setUid(char uid[])
     }
 
     // Request ATS, this only applies to tags that support ISO 14443A-4
-    if (abtRx[0] & SAK_FLAG_ATS_SUPPORTED) {
+    /*if (abtRx[0] & SAK_FLAG_ATS_SUPPORTED) {
         iso_ats_supported = true;
-    }
+    }*/
 
     printf("\nFound tag with\n UID: ");
     switch (szCL) {
@@ -277,26 +277,42 @@ bool NfcHelper::getNewCard(char uid[], int& uidLen)
     nm.nmt = NMT_ISO14443A;
     nm.nbr = NBR_106;
 
+    bool ret = false;
 
     // Get All ISO14443A targets
-    if((res = nfc_initiator_list_passive_targets(pnd, nm, targets, MAX_TARGET_COUNT)) >= 0)
+    if((count = nfc_initiator_list_passive_targets(pnd, nm, targets, MAX_TARGET_COUNT)) >= 0)
     {
         int i;
+        char tmp[10];
+        nfc_iso14443a_info* info;
+
         for(i = 0; i < count; i++)
         {
-            nfc_iso14443a_info* info = &(targets[i].nti.nai);
-            char tmp[10];
-            for(int j=0, off=0; j<info->szUidLen; j++)
+            info = &(targets[i].nti.nai);
+            for(size_t j=0, off=0; j<info->szUidLen; j++)
             {
-                off += sprintf(tmp+off, "%02x", info->abtuid+j);
+                off += sprintf(tmp + off, "%02x", *(info->abtUid + j));
             }
-            qDebug()<<tmp;
+
+            if(strcasecmp(tmp, currentUid) != 0)
+            {
+                strcpy(uid, tmp);
+                ret = true;
+                uidLen = info->szUidLen * 2;
+                break;
+            }
         }
     }
 
     close();
+
+    return ret;
 }
 
+void NfcHelper::setCurrentUid(char newUid[])
+{
+    strcpy(currentUid, newUid);
+}
 
 bool NfcHelper::transmit_bits(const uint8_t *pbtTx, const size_t szTxBits)
 {

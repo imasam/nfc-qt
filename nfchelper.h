@@ -1,6 +1,12 @@
 #ifndef NFCHELPER_H
 #define NFCHELPER_H
 
+#include <stddef.h>
+#include <stdint.h>
+
+struct nfc_context;
+struct nfc_device;
+
 class NfcHelper
 {
 public:
@@ -14,6 +20,7 @@ public:
      * Get a new card which is different from current
      */
     bool getNewCard(char uid[], int& uidLen);
+    void setCurrentUid(char uid[9]);
 
 private:
     nfc_context *context;

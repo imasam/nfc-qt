@@ -12,38 +12,65 @@ MainWindow::MainWindow(QWidget *parent) :
     sqlHelper = new SqliteHelper();
     nfcHelper = new NfcHelper();
 
-    test();
-    QStringList* list = sqlHelper->queryUidList();
+    QStringList* list = sqlHelper->queryNameList();
+    if(list->length() == 0)
+    {
+        delete list;
+        generateCards();
+        list = sqlHelper->queryNameList();
+    }
+
     for(int i=0; i<list->length(); i++)
     {
-        QListWidgetItem *item = new QListWidgetItem;
-        item->setText(list->at(i));
-        ui->lstUid->addItem(item);
-        qDebug()<<list->at(i);
+        addToCardList(list->at(i));
     }
+
+    char* currentName = sqlHelper->queryCurrentName();
+    char* currentUid = nullptr;
+    if(currentName)
+    {
+        ui->lblCurrentCard->setText(QString(currentName));
+        QString name = QString(currentName);
+        currentUid = sqlHelper->queryUid(name);
+        if(currentUid)
+            nfcHelper->setCurrentUid(currentUid);
+    }
+
+    delete currentName;
+    delete currentUid;
+    delete list;
 }
+
+
 
 MainWindow::~MainWindow()
 {
+    ui->lstUid->clear();
+    delete nfcHelper;
+    delete sqlHelper;
     delete ui;
 }
 
-void MainWindow::test()
+void MainWindow::generateCards()
 {
     char uid[9];
-    QStringList* list;
+
+    QString nameStr, uidStr;
 
     sprintf(uid, "%08x", 0xaabbccdd);
-    sqlHelper->insertUid(uid);
+    nameStr = QString("Card1");
+    uidStr = QString(uid);
+    sqlHelper->insertUid(nameStr, uidStr);
+
     sprintf(uid, "%08x", 0x01234567);
-    sqlHelper->insertUid(uid);
+    nameStr = QString("Card2");
+    uidStr = QString(uid);
+    sqlHelper->insertUid(nameStr, uidStr);
+
     sprintf(uid, "%08x", 0x00112233);
-    sqlHelper->insertUid(uid);
-    qDebug()<<QString(uid);
-
-
-    list = sqlHelper->queryUidList();
-    qDebug()<<*list;
+    nameStr = QString("Card3");
+    uidStr = QString(uid);
+    sqlHelper->insertUid(nameStr, uidStr);
 }
 
 void MainWindow::on_btnApply_clicked()
@@ -51,15 +78,33 @@ void MainWindow::on_btnApply_clicked()
     if(ui->lstUid->currentItem() == nullptr)
         return;
 
-    QString uidStr = ui->lstUid->currentItem()->text();
-    if(uidStr.length() < 8)
-        return;
+    QString name = ui->lstUid->currentItem()->text();
+    char* uid = sqlHelper->queryUid(name);
 
-    char uid[9];
-    for(int i=0; i<8; i++)
-        uid[i] = uidStr.at(i).toLatin1();
+    qDebug()<<name;
+    qDebug()<<uid;
+    if(uid && nfcHelper->setUid(uid))
+    {
+        nfcHelper->setCurrentUid(uid);
+        sqlHelper->setCurrentName(name);
+        ui->lblCurrentCard->setText(name);
+    }
 
-    uid[8] = '\0';
+    delete uid;
+}
 
-    nfcHelper->setUid(uid);
+void MainWindow::on_btnAdd_clicked()
+{
+    char uid[10];
+    int uidLen;
+
+    if(nfcHelper->getNewCard(uid, uidLen))
+        addToCardList(QString(uid));
+}
+
+void MainWindow::addToCardList(const QString& name)
+{
+    QListWidgetItem* item = new QListWidgetItem();
+    item->setText(name);
+    ui->lstUid->addItem(name);
 }
