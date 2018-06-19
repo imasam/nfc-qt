@@ -10,7 +10,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     sqlHelper = new SqliteHelper();
-    //test();
+    nfcHelper = new NfcHelper();
+
+    test();
     QStringList* list = sqlHelper->queryUidList();
     for(int i=0; i<list->length(); i++)
     {
@@ -44,9 +46,9 @@ void MainWindow::test()
     qDebug()<<*list;
 }
 
-void MainWindow::on_btnAdd_clicked()
+void MainWindow::on_btnApply_clicked()
 {
-    if(!ui->lstUid->selectedItems())
+    if(ui->lstUid->currentItem() == nullptr)
         return;
 
     QString uidStr = ui->lstUid->currentItem()->text();
@@ -58,4 +60,6 @@ void MainWindow::on_btnAdd_clicked()
         uid[i] = uidStr.at(i).toLatin1();
 
     uid[8] = '\0';
+
+    nfcHelper->setUid(uid);
 }

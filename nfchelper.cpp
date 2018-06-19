@@ -10,103 +10,23 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-//#include <nfc/nfc.h>
+#include <nfc/nfc.h>
+
+extern "C" {
 #include "nfc-utils.h"
+}
 
 #define SAK_FLAG_ATS_SUPPORTED 0x20
-
-#define MAX_FRAME_LEN 264
-
-
-static uint8_t abtRx[MAX_FRAME_LEN];
-static int szRxBits;
-static uint8_t abtRawUid[12];
-static uint8_t abtAtqa[2];
-static uint8_t abtSak;
-static uint8_t abtAts[MAX_FRAME_LEN];
-static uint8_t szAts = 0;
-static size_t szCL = 1;//Always start with Cascade Level 1 (CL1)
-static nfc_device *pnd;
-
-bool    iso_ats_supported = false;
-
-// ISO14443A Anti-Collision Commands
-uint8_t  abtReqa[1] = { 0x26 };
-uint8_t  abtSelectAll[2] = { 0x93, 0x20 };
-uint8_t  abtSelectTag[9] = { 0x93, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-uint8_t  abtRats[4] = { 0xe0, 0x50, 0x00, 0x00 };
-uint8_t  abtHalt[4] = { 0x50, 0x00, 0x00, 0x00 };
 #define CASCADE_BIT 0x04
-
-// special unlock command
-uint8_t  abtUnlock1[1] = { 0x40 };
-uint8_t  abtUnlock2[1] = { 0x43 };
-uint8_t  abtWipe[1] = { 0x41 };
-uint8_t abtWrite[4] = { 0xa0,  0x00,  0x5f,  0xb1 };
-uint8_t abtData[18] = { 0x01,  0x23,  0x45,  0x67,  0x00,  0x08,  0x04,  0x00,  0x46,  0x59,  0x25,  0x58,  0x49,  0x10,  0x23,  0x02,  0x23,  0xeb };
-uint8_t abtBlank[18] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0x80, 0x69, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x36, 0xCC };
-
+#define MAX_FRAME_LEN 264
 
 NfcHelper::NfcHelper()
 {
 
 }
 
-static  bool transmit_bits(const uint8_t *pbtTx, const size_t szTxBits)
+bool NfcHelper::init()
 {
-    // Show transmitted command\
-    printf("Sent bits:     ");
-    print_hex_bits(pbtTx, szTxBits);\
-    // Transmit the bit frame command, we don't use the arbitrary parity feature
-    if ((szRxBits = nfc_initiator_transceive_bits(pnd, pbtTx, szTxBits, NULL, abtRx, sizeof(abtRx), NULL)) < 0)
-        return false;
-
-    // Show received answer\
-    printf("Received bits: ");
-    print_hex_bits(abtRx, szRxBits);\
-    // Succesful transfer
-    return true;
-}
-
-
-static  bool transmit_bytes(const uint8_t *pbtTx, const size_t szTx)
-{
-    // Show transmitted command\
-    printf("Sent bits:     ");
-    print_hex(pbtTx, szTx);
-    int res;
-    // Transmit the command bytes
-    if ((res = nfc_initiator_transceive_bytes(pnd, pbtTx, szTx, abtRx, sizeof(abtRx), 0)) < 0)
-        return false;
-
-    // Show received answer
-    printf("Received bits: ");
-    print_hex(abtRx, res);
-    // Succesful transfer
-    return true;
-}
-
-bool NfcHelper::setUid(char uid[])
-{
-    bool     format = false;
-    unsigned int c;
-    char     tmp[3] = { 0x00, 0x00, 0x00 };
-
-
-    if (strlen(uid) == 8) {
-        for (i = 0 ; i < 4 ; ++i) {
-            memcpy(tmp, argv[arg] + i * 2, 2);
-            sscanf(tmp, "%02x", &c);
-            abtData[i] = (char) c;
-        }
-        abtData[4] = abtData[0] ^ abtData[1] ^ abtData[2] ^ abtData[3];
-        iso14443a_crc_append(abtData, 16);
-    }
-    else {
-        return false;
-    }
-
-    nfc_context *context;
     nfc_init(&context);
     if (context == NULL) {
         ERR("Unable to init libnfc (malloc)");
@@ -125,10 +45,61 @@ bool NfcHelper::setUid(char uid[])
     // Initialise NFC device as "initiator"
     if (nfc_initiator_init(pnd) < 0) {
         nfc_perror(pnd, "nfc_initiator_init");
-        nfc_close(pnd);
-        nfc_exit(context);
+        close();
         return false;
     }
+
+    return true;
+}
+
+void NfcHelper::close()
+{
+    nfc_close(pnd);
+    nfc_exit(context);
+}
+
+bool NfcHelper::setUid(char uid[])
+{
+    static uint8_t abtRx[MAX_FRAME_LEN];
+    static uint8_t abtRawUid[12];
+    static uint8_t abtAtqa[2];
+    static uint8_t abtSak;
+    static uint8_t abtAts[MAX_FRAME_LEN];
+    static uint8_t szAts = 0;
+    static size_t szCL = 1;     // Always start with Cascade Level 1 (CL1)
+
+    bool    iso_ats_supported = false;
+
+    // ISO14443A Anti-Collision Commands
+    uint8_t  abtReqa[1] = { 0x26 };
+    uint8_t  abtSelectAll[2] = { 0x93, 0x20 };
+    uint8_t  abtSelectTag[9] = { 0x93, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    uint8_t  abtHalt[4] = { 0x50, 0x00, 0x00, 0x00 };
+
+    // special unlock command
+    uint8_t abtUnlock1[1] = { 0x40 };
+    uint8_t abtUnlock2[1] = { 0x43 };
+    uint8_t abtWrite[4]   = { 0xa0,  0x00,  0x5f,  0xb1 };
+    uint8_t abtData[18]   = { 0x01,  0x23,  0x45,  0x67,  0x00,  0x08,  0x04,  0x00,  0x46,  0x59,  0x25,  0x58,  0x49,  0x10,  0x23,  0x02,  0x23,  0xeb };
+
+    unsigned int c;
+    char     tmp[3] = { 0x00, 0x00, 0x00 };
+
+
+    if (strlen(uid) == 8) {
+        for (int i = 0 ; i < 4 ; ++i) {
+            memcpy(tmp, uid + i * 2, 2);
+            sscanf(tmp, "%02x", &c);
+            abtData[i] = (char) c;
+        }
+        abtData[4] = abtData[0] ^ abtData[1] ^ abtData[2] ^ abtData[3];
+        iso14443a_crc_append(abtData, 16);
+    }
+    else {
+        return false;
+    }
+
+    if(!init()) return false;
 
     // Configure the CRC
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_CRC, false) < 0) {
@@ -140,15 +111,13 @@ bool NfcHelper::setUid(char uid[])
     // Use raw send/receive methods
     if (nfc_device_set_property_bool(pnd, NP_EASY_FRAMING, false) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool");
-        nfc_close(pnd);
-        nfc_exit(context);
+        close();
         return false;
     }
     // Disable 14443-4 autoswitching
     if (nfc_device_set_property_bool(pnd, NP_AUTO_ISO14443_4, false) < 0) {
         nfc_perror(pnd, "nfc_device_set_property_bool");
-        nfc_close(pnd);
-        nfc_exit(context);
+        close();
         return false;
     }
 
@@ -157,8 +126,7 @@ bool NfcHelper::setUid(char uid[])
     // Send the 7 bits request command specified in ISO 14443A (0x26)
     if (!transmit_bits(abtReqa, 7)) {
         printf("Error: No tag available\n");
-        nfc_close(pnd);
-        nfc_exit(context);
+        close();
         return false;
     }
     memcpy(abtAtqa, abtRx, 2);
@@ -281,12 +249,6 @@ bool NfcHelper::setUid(char uid[])
     if (!transmit_bits(abtUnlock1, 7)) {
         printf("Warning: Unlock command [1/2]: failed / not acknowledged.\n");
     } else {
-        if (format) {
-            transmit_bytes(abtWipe, 1);
-            transmit_bytes(abtHalt, 4);
-            transmit_bits(abtUnlock1, 7);
-        }
-
         if (transmit_bytes(abtUnlock2, 1)) {
             printf("Card unlocked\n");
         } else {
@@ -296,16 +258,42 @@ bool NfcHelper::setUid(char uid[])
 
     transmit_bytes(abtWrite, 4);
     transmit_bytes(abtData, 18);
-    if (format) {
-        for (i = 3 ; i < 64 ; i += 4) {
-            abtWrite[1] = (char) i;
-            iso14443a_crc_append(abtWrite, 2);
-            transmit_bytes(abtWrite, 4);
-            transmit_bytes(abtBlank, 18);
-        }
-    }
 
-    nfc_close(pnd);
-    nfc_exit(context);
+    close();
+    return true;
+}
+
+
+bool NfcHelper::transmit_bits(const uint8_t *pbtTx, const size_t szTxBits)
+{
+    // Show transmitted command
+    printf("Sent bits:     ");
+    print_hex_bits(pbtTx, szTxBits);
+    // Transmit the bit frame command, we don't use the arbitrary parity feature
+    if ((szRxBits = nfc_initiator_transceive_bits(pnd, pbtTx, szTxBits, NULL, abtRx, sizeof(abtRx), NULL)) < 0)
+        return false;
+
+    // Show received answer
+    printf("Received bits: ");
+    print_hex_bits(abtRx, szRxBits);
+    // Succesful transfer
+    return true;
+}
+
+
+bool NfcHelper::transmit_bytes(const uint8_t *pbtTx, const size_t szTx)
+{
+    // Show transmitted command
+    printf("Sent bits:     ");
+    print_hex(pbtTx, szTx);
+    int res;
+    // Transmit the command bytes
+    if ((res = nfc_initiator_transceive_bytes(pnd, pbtTx, szTx, abtRx, sizeof(abtRx), 0)) < 0)
+        return false;
+
+    // Show received answer
+    printf("Received bits: ");
+    print_hex(abtRx, res);
+    // Succesful transfer
     return true;
 }

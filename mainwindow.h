@@ -19,7 +19,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_btnAdd_clicked();
+    void on_btnApply_clicked();
 
 private:
     void test();
