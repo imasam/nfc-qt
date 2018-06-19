@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    ui->lstUid->clear();
+    ui->lstCard->clear();
     delete nfcHelper;
     delete sqlHelper;
     delete ui;
@@ -75,10 +75,10 @@ void MainWindow::generateCards()
 
 void MainWindow::on_btnApply_clicked()
 {
-    if(ui->lstUid->currentItem() == nullptr)
+    if(ui->lstCard->currentItem() == nullptr)
         return;
 
-    QString name = ui->lstUid->currentItem()->text();
+    QString name = ui->lstCard->currentItem()->text();
     char* uid = sqlHelper->queryUid(name);
 
     qDebug()<<name;
@@ -106,5 +106,5 @@ void MainWindow::addToCardList(const QString& name)
 {
     QListWidgetItem* item = new QListWidgetItem();
     item->setText(name);
-    ui->lstUid->addItem(name);
+    ui->lstCard->addItem(name);
 }
