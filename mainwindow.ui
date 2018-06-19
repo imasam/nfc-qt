@@ -19,6 +19,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Current Card: </string>
         </property>
@@ -37,6 +43,12 @@
           <width>150</width>
           <height>0</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>20</pointsize>
+         </font>
         </property>
         <property name="text">
          <string>None</string>
