@@ -7,7 +7,8 @@ class SqliteHelper
 {
 public:
     SqliteHelper();
-    bool insertCard(const QString& name, const QString& uid);   // Insert a new card to database
+    // Insert a new card to database
+    bool insertCard(const QString& category, const QString& name, const QString& uid, double longtitude, double latitude);
     QStringList* queryNameList();                               // Query all uid from database
     char* queryUid(const QString& name);                        // Query uid by name
     char* queryCurrentName();                                   // Get the name of current card

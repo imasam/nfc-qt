@@ -25,6 +25,7 @@ private slots:
 
 private:
     void generateCards();           // Generate some cards for test
+    void setGPS(double &longtitude, double &latitude);  // Set the longtitude and latitude
 
 private:
     Ui::MainWindow *ui;

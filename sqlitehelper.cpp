@@ -23,10 +23,15 @@ SqliteHelper::SqliteHelper()
 bool SqliteHelper::initTable()
 {
     if(!query.exec("CREATE TABLE IF NOT EXISTS  card ("
-                      "name VARCHAR(8) NOT NULL UNIQUE,"
-                      "uid CHAR(8) NOT NULL);"))
+                      "category VACHAR(8) NOT NULL,"
+                      "name VARCHAR(20) NOT NULL UNIQUE,"
+                      "uid CHAR(8) NOT NULL,"
+                      "longtitude DOUBLE,"
+                      "latitude DOUBLE"
+                      ");"))
     {
         qDebug()<<query.lastError();
+        qDebug()<<query.lastQuery();
         return false;
     }
 
@@ -34,23 +39,27 @@ bool SqliteHelper::initTable()
                       "name VARCHAR(8));"))
     {
         qDebug()<<query.lastError();
+        qDebug()<<query.lastQuery();
         return false;
     }
 
-    if(!query.exec("INSERT INTO current(name) VALUES('None');"))
+    if(!query.exec("INSERT INTO current(name) VALUES('NONE');"))
     {
         qDebug()<<query.lastError();
+        qDebug()<<query.lastQuery();
         return false;
     }
 
     return true;
 }
 
-bool SqliteHelper::insertCard(const QString& name, const QString& uid)
+bool SqliteHelper::insertCard(const QString& category, const QString& name, const QString& uid, double longtitude, double latitude)
 {
-    if(!query.exec("INSERT INTO card(name,uid) VALUES('"+ name + "','" + uid + "');"))
+    if(!query.exec("INSERT INTO card(category,name,uid,longtitude,latitude) VALUES('"
+                   + category + "','" + name + "','" + uid + "','" + longtitude + "','" + latitude +"');"))
     {
         qDebug()<<query.lastError();
+        qDebug()<<query.lastQuery();
         return false;
     }
     else

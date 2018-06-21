@@ -43,8 +43,6 @@ MainWindow::MainWindow(QWidget *parent) :
     delete list;
 }
 
-
-
 MainWindow::~MainWindow()
 {
     ui->lstCard->clear();
@@ -55,24 +53,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::generateCards()
 {
-    char uid[9];
-
-    QString nameStr, uidStr;
-
-    sprintf(uid, "%08x", 0xaabbccdd);
-    nameStr = QString("Card1");
-    uidStr = QString(uid);
-    sqlHelper->insertCard(nameStr, uidStr);
-
-    sprintf(uid, "%08x", 0x01234567);
-    nameStr = QString("Card2");
-    uidStr = QString(uid);
-    sqlHelper->insertCard(nameStr, uidStr);
-
-    sprintf(uid, "%08x", 0x00112233);
-    nameStr = QString("Card3");
-    uidStr = QString(uid);
-    sqlHelper->insertCard(nameStr, uidStr);
+    sqlHelper->insertCard("bus", "WuHanTong", "01234567", 3.1415, 3.1415);
+    sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.3582, 30.5286);
+    sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.3582, 30.5261);
 }
 
 void MainWindow::on_btnApply_clicked()
@@ -125,15 +108,39 @@ void MainWindow::on_btnAdd_clicked()
     if(nfcHelper->getNewCard(uid, uidLen))
     {
         bool isOK;
+
         QString name = QInputDialog::getText(this, "New Card",
-                        "Find a new card, uid: " + QString(uid) +
-                        "\nPlease input the name of the card:",
-                        QLineEdit::Normal, nullptr, &isOK);
+                                             "Find a new card, uid: " + QString(uid) +
+                                             "\nPlease input the name of the card:",
+                                             QLineEdit::Normal, nullptr, &isOK);
+
         if(isOK)
         {
-            addToCardList(name);
-            sqlHelper->insertCard(name, QString(uid));
+            static QStringList categories;
+            categories.append("bus");
+            categories.append("subway");
+            categories.append("others");
+            QString category = QInputDialog::getItem(this, "New Card",
+                            "Find a new card, uid: " + QString(uid) +
+                            "\nPlease choose the category of the card:",
+                            categories, 0, false, &isOK);
+
+            double longtitude = 3.1415, latitude = 3.1415;
+
+            if(isOK)
+            {
+                if(category == "others")
+                    // Get the longtitude and latitude
+                    setGPS(longtitude, latitude);
+
+                addToCardList(name);
+                sqlHelper->insertCard("others", name, QString(uid), longtitude, latitude);
+            }
+            else
+                QMessageBox::about(this, "Fault", "The category isn't set.");
         }
+        else
+            QMessageBox::about(this, "Fault", "The name isn't set.");
     }
     else
         QMessageBox::about(this, "Fault", "No card different from current.");
@@ -147,4 +154,10 @@ void MainWindow::addToCardList(const QString& name)
     QListWidgetItem* item = new QListWidgetItem();
     item->setText(name);
     ui->lstCard->addItem(name);
+}
+
+void MainWindow::setGPS(double &longtitude, double &latitude)
+{
+    // Add codes of getting the longtitude and latitude
+    // HERE=======================
 }
