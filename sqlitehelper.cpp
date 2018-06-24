@@ -26,7 +26,7 @@ bool SqliteHelper::initTable()
                       "category VACHAR(8) NOT NULL,"
                       "name VARCHAR(20) NOT NULL UNIQUE,"
                       "uid CHAR(8) NOT NULL,"
-                      "longtitude DOUBLE,"
+                      "longitude DOUBLE,"
                       "latitude DOUBLE"
                       ");"))
     {
@@ -53,28 +53,29 @@ bool SqliteHelper::initTable()
     return true;
 }
 
-bool SqliteHelper::insertCard(const QString& category, const QString& name, const QString& uid, double longtitude, double latitude)
+bool SqliteHelper::insertCard(const QString& category, const QString& name, const QString& uid, double longitude, double latitude)
 {
-    if(!query.exec("INSERT INTO card(category,name,uid,longtitude,latitude) VALUES('"
-                   + category + "','" + name + "','" + uid + "','" + longtitude + "','" + latitude +"');"))
+    if(!query.exec("INSERT INTO card(category,name,uid,longitude,latitude) VALUES('"
+                   + category + "','" + name + "','" + uid + "'," + QString::number(longitude) + "," + QString::number(latitude) +");"))
     {
         qDebug()<<query.lastError();
         qDebug()<<query.lastQuery();
         return false;
     }
     else
+        qDebug()<<query.lastQuery();
         return true;
 }
 
 char* SqliteHelper::queryUid(const QString &name)
 {
-    char* uid = new char[20];
     query.exec("select uid from card where name='" + name + "';");
     if(query.next())
     {
         QString str = query.value(0).toString();
         if(str.length() != 8) return nullptr;
 
+        char* uid = new char[20];
         int i;
         for(i=0; i<str.length(); i++)
             uid[i] = str.at(i).toLatin1();
@@ -88,16 +89,42 @@ char* SqliteHelper::queryUid(const QString &name)
 
 char* SqliteHelper::queryCurrentName()
 {
-    char* name = new char[9];
     query.exec("select name from current;");
     if(query.next())
     {
         QString str = query.value(0).toString();
 
+        char* name = new char[9];
         int i;
         for(i=0; i<str.length(); i++)
             name[i] = str.at(i).toLatin1();
         name[i] = '\0';
+
+        return name;
+    }
+
+    return nullptr;
+}
+
+QString* SqliteHelper::queryBusCardName()
+{
+    query.exec("select name from card where category='bus';");
+    if(query.next())
+    {
+        QString* name = new QString(query.value(0).toString());
+
+        return name;
+    }
+
+    return nullptr;
+}
+
+QString* SqliteHelper::querySubwayCardName()
+{
+    query.exec("select name from card where category='subway';");
+    if(query.next())
+    {
+        QString* name = new QString(query.value(0).toString());
 
         return name;
     }
@@ -120,4 +147,22 @@ QStringList* SqliteHelper::queryNameList()
     }
 
     return uidList;
+}
+
+QMap<QString, GPS>* SqliteHelper::queryOthersList()
+{
+    QMap<QString, GPS>* othersList = new QMap<QString, GPS>;
+    query.exec("select name,longitude,latitude from card;");
+
+    while(query.next())
+    {
+        QString name = query.value(0).toString();
+        GPS gps;
+        gps.longitude = query.value(1).toDouble();
+        gps.latitude = query.value(2).toDouble();
+
+        othersList->insert(name, gps);
+    }
+
+    return othersList;
 }

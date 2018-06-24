@@ -18,11 +18,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     sqlitehelper.cpp \
     nfchelper.cpp \
-    nfc-utils.c
+    nfc-utils.c \
+    jsonhelper.cpp
 
 HEADERS  += mainwindow.h \
     sqlitehelper.h \
     nfchelper.h \
-    nfc-utils.h
+    nfc-utils.h \
+    jsonhelper.h \
+    gps.h
 
 FORMS    += mainwindow.ui

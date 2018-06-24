@@ -1,4 +1,6 @@
 #include "jsonhelper.h"
+#include "gps.h"
+#include <QDebug>
 
 bool JsonHelper::init(QString filePath)
 {
@@ -31,20 +33,20 @@ GPS* JsonHelper::getCurrentGPS(bool system60)
 
 	QJsonValue value;
 	if (system60)
-		value = obj.take("location_gps_60");
+        value = data.take("location_gps_60");
 	else
-		value = obj.take("location_gps_10");
+        value = data.take("location_gps_10");
 
 	if (value.isObject())
 	{
 		obj = value.toObject();
 		value = obj.take("longitude");
-		if (value.isString())
-			gps->longitude = value.toString().toDouble();
+        if (value.isDouble())
+            gps->longitude = value.toDouble();
 
 		value = obj.take("latitude");
-		if (value.isString())
-			gps->latitude = value.toString().toDouble();
+        if (value.isDouble())
+            gps->latitude = value.toDouble();
 	}
 
 	return gps;

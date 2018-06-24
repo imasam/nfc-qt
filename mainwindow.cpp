@@ -2,8 +2,12 @@
 #include "ui_mainwindow.h"
 #include "sqlitehelper.h"
 #include "nfchelper.h"
+#include "jsonhelper.h"
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QProcess>
+#include <QTimer>
+#include <qmath.h>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -13,6 +17,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     sqlHelper = new SqliteHelper();
     nfcHelper = new NfcHelper();
+    jsonHelper = new JsonHelper();
+    currentGPS = nullptr;
 
     QStringList* list = sqlHelper->queryNameList();
     if(list->length() == 0)
@@ -27,6 +33,10 @@ MainWindow::MainWindow(QWidget *parent) :
         addToCardList(list->at(i));
     }
 
+    busCardName = sqlHelper->queryBusCardName();
+    subwayCardName = sqlHelper->querySubwayCardName();
+    othersList = sqlHelper->queryOthersList();
+
     char* currentName = sqlHelper->queryCurrentName();
     char* currentUid = nullptr;
     if(currentName)
@@ -38,23 +48,40 @@ MainWindow::MainWindow(QWidget *parent) :
             nfcHelper->setCurrentUid(currentUid);
     }
 
+    updateTimer = new QTimer(this);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateSlot()));
+    updateTimer->start(120*1000);
+
+    maxDistance = 200.0;
+    updateSlot();
+
     delete currentName;
     delete currentUid;
+    list->clear();
     delete list;
 }
 
 MainWindow::~MainWindow()
 {
     ui->lstCard->clear();
+    othersList->clear();
+    updateTimer->stop();
     delete nfcHelper;
     delete sqlHelper;
+    delete jsonHelper;
+    delete busCardName;
+    delete subwayCardName;
+    delete othersList;
+    delete currentGPS;
+    delete updateTimer;
+
     delete ui;
 }
 
 void MainWindow::generateCards()
 {
     sqlHelper->insertCard("bus", "WuHanTong", "01234567", 3.1415, 3.1415);
-    sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.3582, 30.5286);
+    sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.211437, 30.318437);
     sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.3582, 30.5261);
 }
 
@@ -69,9 +96,17 @@ void MainWindow::on_btnApply_clicked()
     ui->btnApply->repaint();
 
     QString name = ui->lstCard->currentItem()->text();
+    applyNewCard(name);
+
+    ui->btnApply->setText("Apply Selected Card");
+    ui->btnApply->setEnabled(true);
+}
+
+void MainWindow::applyNewCard(const QString& name)
+{
     char* uid = sqlHelper->queryUid(name);
 
-    qDebug()<<name; qDebug()<<uid;
+    qDebug()<<name<<", "<<uid;
 
     // Set uid of the selected to real card/target
     if(uid)
@@ -87,9 +122,6 @@ void MainWindow::on_btnApply_clicked()
     }
     else
         QMessageBox::about(this, "Fault", "The selected card is invaid.");
-
-    ui->btnApply->setText("Apply Selected Card");
-    ui->btnApply->setEnabled(true);
 
     delete uid;
 }
@@ -116,7 +148,7 @@ void MainWindow::on_btnAdd_clicked()
 
         if(isOK)
         {
-            static QStringList categories;
+            QStringList categories;
             categories.append("bus");
             categories.append("subway");
             categories.append("others");
@@ -125,16 +157,23 @@ void MainWindow::on_btnAdd_clicked()
                             "\nPlease choose the category of the card:",
                             categories, 0, false, &isOK);
 
-            double longtitude = 3.1415, latitude = 3.1415;
+            double longitude = 3.1415, latitude = 3.1415;
 
             if(isOK)
             {
                 if(category == "others")
-                    // Get the longtitude and latitude
-                    setGPS(longtitude, latitude);
+                {
+                    // Get the longitude and latitude
+                    longitude = currentGPS->longitude;
+                    latitude = currentGPS->latitude;
+                }
+                else if(category == "bus")
+                    *busCardName = name;
+                else if(category == "subway")
+                    *subwayCardName = name;
 
                 addToCardList(name);
-                sqlHelper->insertCard("others", name, QString(uid), longtitude, latitude);
+                sqlHelper->insertCard("others", name, QString(uid), longitude, latitude);
             }
             else
                 QMessageBox::about(this, "Fault", "The category isn't set.");
@@ -156,8 +195,70 @@ void MainWindow::addToCardList(const QString& name)
     ui->lstCard->addItem(name);
 }
 
-void MainWindow::setGPS(double &longtitude, double &latitude)
+void MainWindow::updateSlot()
 {
-    // Add codes of getting the longtitude and latitude
-    // HERE=======================
+    /*
+    QProcess process;
+    process.execute("python /home/pi/nfc-qt/MapAPI/call_test.py");
+    process.waitForFinished(100*1000);
+    process.close();
+    */
+
+    jsonHelper->init("./map_data.json");
+    delete currentGPS;
+    currentGPS = jsonHelper->getCurrentGPS();
+
+    // Calculate the distances
+    QMapIterator<QString, GPS> i(*othersList);
+    while(i.hasNext())
+    {
+        QString name = i.next().key();
+        GPS cardGPS = i.value();
+        double dist = getDistance(currentGPS, &cardGPS);
+
+        if(dist < maxDistance)
+        {
+            qDebug()<<"===============";
+            qDebug()<<currentGPS->longitude<< ", " <<currentGPS->latitude;
+            qDebug()<<cardGPS.longitude<<", "<<cardGPS.latitude;
+            qDebug()<<dist;
+            qDebug()<<"===============";
+
+            applyNewCard(name);
+            jsonHelper->close();
+            return;
+        }
+    }
+
+    if(jsonHelper->existBus())
+    {
+        applyNewCard(*busCardName);
+        jsonHelper->close();
+        return;
+    }
+
+    if(jsonHelper->existSubway())
+    {
+        applyNewCard(*subwayCardName);
+        jsonHelper->close();
+        return;
+    }
+}
+
+double MainWindow::getDistance(GPS* gps1, GPS* gps2)
+{
+    double Lat1 = rad(gps1->latitude); // 纬度
+    double Lat2 = rad(gps2->latitude);
+    double a = Lat1 - Lat2;//两点纬度之差
+    double b = rad(gps1->longitude) - rad(gps2->longitude); //经度之差
+    //计算两点距离的公式
+    double s = 2 * qSin(qSqrt(qPow(qSin(a / 2), 2) + qCos(Lat1) * qCos(Lat2) * qPow(qSin(b / 2), 2)));
+    s = s * 6378137.0;//弧长乘地球半径（半径为米）
+    s = qRound(s * 10000.0) / 10000.0;//精确距离的数值
+    return s;
+}
+
+double MainWindow::rad(double d)
+{
+    return d * M_PI / 180.00; //角度转换成弧度
 }

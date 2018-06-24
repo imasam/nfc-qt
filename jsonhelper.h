@@ -1,14 +1,13 @@
+#ifndef JSONHELPER_H
+#define JSONHELPER_H
+
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QByteArray>
 #include <QFile>
 
-struct GPS
-{
-	double longitude;
-	double latitude;
-};
+struct GPS;
 
 class JsonHelper
 {
@@ -23,3 +22,5 @@ private:
 	QJsonObject data;
 	QFile *file;
 };
+
+#endif
