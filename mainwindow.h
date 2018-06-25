@@ -7,6 +7,7 @@
 class SqliteHelper;
 class NfcHelper;
 class JsonHelper;
+class QProcess;
 
 namespace Ui {
 class MainWindow;
@@ -32,6 +33,9 @@ private:
     double getDistance(GPS* gps1, GPS* gps2);
     static double rad(double d);
 
+protected:
+    void showEvent(QShowEvent *e);
+
 private:
     Ui::MainWindow *ui;
 
@@ -40,6 +44,7 @@ private:
     JsonHelper* jsonHelper;
 
     QTimer* updateTimer;
+    QProcess* process;
     double maxDistance;
 
     GPS* currentGPS;

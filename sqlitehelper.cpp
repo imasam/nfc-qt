@@ -152,7 +152,7 @@ QStringList* SqliteHelper::queryNameList()
 QMap<QString, GPS>* SqliteHelper::queryOthersList()
 {
     QMap<QString, GPS>* othersList = new QMap<QString, GPS>;
-    query.exec("select name,longitude,latitude from card;");
+    query.exec("select name,longitude,latitude from card where category='others';");
 
     while(query.next())
     {

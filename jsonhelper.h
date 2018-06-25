@@ -15,12 +15,10 @@ public:
 	GPS* getCurrentGPS(bool system60 = true);
 	bool existBus();
 	bool existSubway();
-	bool init(QString filePath);
-	void close();
+    bool init(QString filePath);
 
 private:
-	QJsonObject data;
-	QFile *file;
+    QJsonObject data;
 };
 
 #endif

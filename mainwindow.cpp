@@ -18,8 +18,15 @@ MainWindow::MainWindow(QWidget *parent) :
     sqlHelper = new SqliteHelper();
     nfcHelper = new NfcHelper();
     jsonHelper = new JsonHelper();
-    currentGPS = nullptr;
+    currentGPS = new GPS();
+    currentGPS->latitude = 3.1415;
+    currentGPS->latitude = 3.1415;
+    maxDistance = 100.0;
+    process = new QProcess(this);
+}
 
+void MainWindow::showEvent(QShowEvent *e)
+{
     QStringList* list = sqlHelper->queryNameList();
     if(list->length() == 0)
     {
@@ -52,8 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateSlot()));
     updateTimer->start(120*1000);
 
-    maxDistance = 200.0;
-    updateSlot();
+    QTimer::singleShot(3000, this, SLOT(updateSlot()));
 
     delete currentName;
     delete currentUid;
@@ -66,6 +72,7 @@ MainWindow::~MainWindow()
     ui->lstCard->clear();
     othersList->clear();
     updateTimer->stop();
+    process->close();
     delete nfcHelper;
     delete sqlHelper;
     delete jsonHelper;
@@ -74,6 +81,7 @@ MainWindow::~MainWindow()
     delete othersList;
     delete currentGPS;
     delete updateTimer;
+    delete process;
 
     delete ui;
 }
@@ -82,7 +90,7 @@ void MainWindow::generateCards()
 {
     sqlHelper->insertCard("bus", "WuHanTong", "01234567", 3.1415, 3.1415);
     sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.211437, 30.318437);
-    sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.3582, 30.5261);
+    sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.212, 30.3172);
 }
 
 void MainWindow::on_btnApply_clicked()
@@ -90,7 +98,7 @@ void MainWindow::on_btnApply_clicked()
     if(ui->lstCard->currentItem() == nullptr)
         return;
 
-    // Tip user
+    // Tip useri
     ui->btnApply->setEnabled(false);
     ui->btnApply->setText("Applying, PLS wait..");
     ui->btnApply->repaint();
@@ -106,7 +114,8 @@ void MainWindow::applyNewCard(const QString& name)
 {
     char* uid = sqlHelper->queryUid(name);
 
-    qDebug()<<name<<", "<<uid;
+    qDebug()<<"Apply a new card:";
+    qDebug()<<" "<<name<<", "<<uid;
 
     // Set uid of the selected to real card/target
     if(uid)
@@ -197,16 +206,18 @@ void MainWindow::addToCardList(const QString& name)
 
 void MainWindow::updateSlot()
 {
-    /*
-    QProcess process;
-    process.execute("python /home/pi/nfc-qt/MapAPI/call_test.py");
-    process.waitForFinished(100*1000);
-    process.close();
-    */
+    process->close();
+    delete process;
+    process = new QProcess(this);
+    process->start("python /home/pi/nfc-qt/MapAPI/call_test.py");
 
     jsonHelper->init("./map_data.json");
-    delete currentGPS;
-    currentGPS = jsonHelper->getCurrentGPS();
+    GPS* t = jsonHelper->getCurrentGPS();
+    if(t != nullptr)
+    {
+        delete currentGPS;
+        currentGPS = t;
+    }
 
     // Calculate the distances
     QMapIterator<QString, GPS> i(*othersList);
@@ -225,22 +236,19 @@ void MainWindow::updateSlot()
             qDebug()<<"===============";
 
             applyNewCard(name);
-            jsonHelper->close();
             return;
         }
     }
 
-    if(jsonHelper->existBus())
+    if(jsonHelper->existBus() && busCardName)
     {
         applyNewCard(*busCardName);
-        jsonHelper->close();
         return;
     }
 
-    if(jsonHelper->existSubway())
+    if(jsonHelper->existSubway() && subwayCardName)
     {
         applyNewCard(*subwayCardName);
-        jsonHelper->close();
         return;
     }
 }

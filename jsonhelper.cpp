@@ -4,9 +4,10 @@
 
 bool JsonHelper::init(QString filePath)
 {
-	file = new QFile(filePath);
-	file->open(QIODevice::ReadOnly);
-	QByteArray b = file->readAll();
+    QFile file(filePath);
+    file.open(QIODevice::ReadOnly);
+    QByteArray b = file.readAll();
+    file.close();
 	QJsonParseError json_error;
 	QJsonDocument parse_document = QJsonDocument::fromJson(b, &json_error);
 	QJsonObject obj = parse_document.object();
@@ -16,19 +17,11 @@ bool JsonHelper::init(QString filePath)
 	return json_error.error == QJsonParseError::NoError;
 }
 
-void JsonHelper::close()
-{
-	file->close();
-}
-
 /*
  * 获取当前GPS坐标
  */
 GPS* JsonHelper::getCurrentGPS(bool system60)
 {
-	GPS* gps = new GPS;
-	gps->latitude = 3.1415;
-	gps->longitude = 3.1415;
 	QJsonObject obj = data;
 
 	QJsonValue value;
@@ -39,6 +32,7 @@ GPS* JsonHelper::getCurrentGPS(bool system60)
 
 	if (value.isObject())
 	{
+        GPS* gps = new GPS;
 		obj = value.toObject();
 		value = obj.take("longitude");
         if (value.isDouble())
@@ -47,9 +41,11 @@ GPS* JsonHelper::getCurrentGPS(bool system60)
 		value = obj.take("latitude");
         if (value.isDouble())
             gps->latitude = value.toDouble();
+
+        return gps;
 	}
 
-	return gps;
+    return nullptr;
 }
 
 /*

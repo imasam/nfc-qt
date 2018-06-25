@@ -45,12 +45,19 @@ try:
     import serial
     import pynmea2
     import time
+    import sys
+
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
     ser = serial.Serial("/dev/ttyAMA0", 9600)
 
     print('Getting GPS data...')
     while True:
         line = ser.readline()
+        #line = '$GNRMC,034404.00,A,3640.48056,N,11707.96443,E,0.04,0.000,271017,0.0,0,D*68'
+        #Dorm 9
+        #line = '$GNRMC,041210.000,A,3031.7083,N,11421.1661,E,0.00,0.00,250618,,,A*74'
         if line.startswith('$GNRMC'):
             rmc = pynmea2.parse(line)
             print("Latitude:  ", float(rmc.lat) / 100)
@@ -65,8 +72,7 @@ try:
             location_gps_60['latitude'] = latitude_60
             location_gps_60['longitude'] = longitude_60
             data['location_gps_60'] = location_gps_60
-            print('Got GPS data')
-            break
+                print('Got GPS data')
 except:
     traceback.print_exc()
     json_obj['code'] = -1
@@ -88,8 +94,8 @@ try:
     location_amap['longitude'] = amap_location_string.split(',')[0]
     data['location_amap'] = location_amap
 
-    ret2 = api.place.around(types='150500|150600', location=amap_location_string, radius=1000)
-    ret3 = api.place.around(types='150700', location=amap_location_string, radius=1000)
+    ret2 = api.place.around(types='150500|150600', location=amap_location_string, radius=200)
+    ret3 = api.place.around(types='150700', location=amap_location_string, radius=200)
 
     data['metroStationCount'] = int(ret2.get('count'))
     data['busStationCount'] = int(ret3.get('count'))
