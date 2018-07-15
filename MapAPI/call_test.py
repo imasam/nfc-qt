@@ -72,7 +72,8 @@ try:
             location_gps_60['latitude'] = latitude_60
             location_gps_60['longitude'] = longitude_60
             data['location_gps_60'] = location_gps_60
-                print('Got GPS data')
+            print('Got GPS data')
+            break
 except:
     traceback.print_exc()
     json_obj['code'] = -1
