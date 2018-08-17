@@ -91,6 +91,7 @@ void MainWindow::generateCards()
     sqlHelper->insertCard("bus", "WuHanTong", "01234567", 3.1415, 3.1415);
     sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.211437, 30.318437);
     sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.212, 30.3172);
+    sqlHelper->insertCard("others", "WaterCard", "4b3736df", 3.1415, 3.1415);
 }
 
 void MainWindow::on_btnApply_clicked()
@@ -98,13 +99,22 @@ void MainWindow::on_btnApply_clicked()
     if(ui->lstCard->currentItem() == nullptr)
         return;
 
-    // Tip useri
+    // Tip user
     ui->btnApply->setEnabled(false);
     ui->btnApply->setText("Applying, PLS wait..");
     ui->btnApply->repaint();
 
+    // If the current is waterCard, save the data of waterCard
+    QString currentName =  ui->lblCurrentCard->getText();
+    if(currentName.equal("WaterCard"))
+        mfclassic("R", "./watercard.dump");
+
     QString name = ui->lstCard->currentItem()->text();
     applyNewCard(name);
+
+    // If the selected is waterCard, save the data of waterCard
+    if(name.equal("WaterCard"))
+        mfclassic("W", "./watercard.dump");
 
     ui->btnApply->setText("Apply Selected Card");
     ui->btnApply->setEnabled(true);

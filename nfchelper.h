@@ -22,6 +22,11 @@ public:
     bool getNewCard(char uid[], int& uidLen);
     void setCurrentUid(char uid[9]);
 
+    /*
+     * Read or write(depend on command) the data of card to the cardDataFile
+     */
+    bool NfcHelper::mfclassic(const char *command, const char *cardDataFile);
+
 private:
     nfc_context *context;
     nfc_device *pnd;

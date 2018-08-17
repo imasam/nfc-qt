@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "mifare.h": "c",
+        "nfc-utils.h": "c"
+    }
+}
