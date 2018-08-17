@@ -25,7 +25,7 @@ public:
     /*
      * Read or write(depend on command) the data of card to the cardDataFile
      */
-    bool NfcHelper::mfclassic(const char *command, const char *cardDataFile);
+    bool mfclassic(const char *command, const char *cardDataFile);
 
 private:
     nfc_context *context;

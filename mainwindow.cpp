@@ -105,16 +105,16 @@ void MainWindow::on_btnApply_clicked()
     ui->btnApply->repaint();
 
     // If the current is waterCard, save the data of waterCard
-    QString currentName =  ui->lblCurrentCard->getText();
-    if(currentName.equal("WaterCard"))
-        mfclassic("R", "./watercard.dump");
+    QString currentName =  ui->lblCurrentCard->text();
+    if(currentName.compare("WaterCard"))
+        nfcHelper->mfclassic("R", "./watercard.dump");
 
     QString name = ui->lstCard->currentItem()->text();
     applyNewCard(name);
 
     // If the selected is waterCard, save the data of waterCard
-    if(name.equal("WaterCard"))
-        mfclassic("W", "./watercard.dump");
+    if(name.compare("WaterCard"))
+        nfcHelper->mfclassic("W", "./watercard.dump");
 
     ui->btnApply->setText("Apply Selected Card");
     ui->btnApply->setEnabled(true);
