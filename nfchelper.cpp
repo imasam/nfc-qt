@@ -417,7 +417,7 @@ bool NfcHelper::transmit_bytes(const uint8_t *pbtTx, const size_t szTx)
  */
 
 static void
-print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter)
+NfcHelper::print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter)
 {
     printf("%c", (bFailure) ? 'x' : '.');
     if (uiBlockCounter && !bFailure)
@@ -425,7 +425,7 @@ print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter)
 }
 
 static bool
-is_first_block(uint32_t uiBlock)
+NfcHelper::is_first_block(uint32_t uiBlock)
 {
     // Test if we are in the small or big sectors
     if (uiBlock < 128)
@@ -435,7 +435,7 @@ is_first_block(uint32_t uiBlock)
 }
 
 static bool
-is_trailer_block(uint32_t uiBlock)
+NfcHelper::is_trailer_block(uint32_t uiBlock)
 {
     // Test if we are in the small or big sectors
     if (uiBlock < 128)
@@ -445,7 +445,7 @@ is_trailer_block(uint32_t uiBlock)
 }
 
 static uint32_t
-get_trailer_block(uint32_t uiFirstBlock)
+NfcHelper::get_trailer_block(uint32_t uiFirstBlock)
 {
     // Test if we are in the small or big sectors
     uint32_t trailer_block = 0;
@@ -461,7 +461,7 @@ get_trailer_block(uint32_t uiFirstBlock)
 }
 
 static bool
-authenticate(uint32_t uiBlock)
+NfcHelper::authenticate(uint32_t uiBlock)
 {
     mifare_cmd mc;
 
@@ -494,7 +494,7 @@ authenticate(uint32_t uiBlock)
 }
 
 static bool
-unlock_card(void)
+NfcHelper::unlock_card(void)
 {
     // Configure the CRC
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_CRC, false) < 0)
@@ -546,7 +546,7 @@ unlock_card(void)
 }
 
 static int
-get_rats(void)
+NfcHelper::get_rats(void)
 {
     int res;
     uint8_t abtRats[2] = {0xe0, 0x50};
@@ -583,7 +583,7 @@ get_rats(void)
 }
 
 static bool
-read_card(int read_unlocked)
+NfcHelper::read_card(int read_unlocked)
 {
     int32_t iBlock;
     bool bFailure = false;
@@ -685,7 +685,7 @@ read_card(int read_unlocked)
 }
 
 static bool
-write_card(int write_block_zero)
+NfcHelper::write_card(int write_block_zero)
 {
     uint32_t uiBlock;
     bool bFailure = false;
