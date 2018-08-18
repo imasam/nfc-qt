@@ -1,1 +1,1 @@
-{"msg": "", "code": 0, "data": {"location_gps_60": {"latitude": 30.317179999999997, "longitude": 114.211658}, "metroStationCount": 0, "location_amap": {"latitude": "30.526286", "longitude": "114.358274"}, "location_gps_10": {"latitude": 30.52863333333333, "longitude": 114.35276333333333}, "busStationData": [], "busStationCount": 0, "metroStationData": []}}
+{"msg": "Calling Amap API ERROR or write file ERROR!", "code": -2, "data": {}}

@@ -21,12 +21,14 @@ MainWindow::MainWindow(QWidget *parent) :
     currentGPS = new GPS();
     currentGPS->latitude = 3.1415;
     currentGPS->latitude = 3.1415;
-    maxDistance = 100.0;
+    maxDistance = 50.0;
     process = new QProcess(this);
 }
 
 void MainWindow::showEvent(QShowEvent *e)
 {
+    Q_UNUSED(e);
+
     QStringList* list = sqlHelper->queryNameList();
     if(list->length() == 0)
     {
@@ -57,7 +59,7 @@ void MainWindow::showEvent(QShowEvent *e)
 
     updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateSlot()));
-    updateTimer->start(120*1000);
+    updateTimer->start(5*1000);
 
     QTimer::singleShot(3000, this, SLOT(updateSlot()));
 
@@ -89,8 +91,8 @@ MainWindow::~MainWindow()
 void MainWindow::generateCards()
 {
     sqlHelper->insertCard("bus", "WuHanTong", "01234567", 3.1415, 3.1415);
-    sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.211437, 30.318437);
-    sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.212, 30.3172);
+    sqlHelper->insertCard("others", "Dorm14", "8e4ae505", 114.212970,30.314324);
+    sqlHelper->insertCard("others", "Dorm9", "d565c72d", 114.213005,30.313409);
     sqlHelper->insertCard("others", "WaterCard", "4b3736df", 3.1415, 3.1415);
 }
 
@@ -229,6 +231,8 @@ void MainWindow::updateSlot()
         currentGPS = t;
     }
 
+    qDebug()<<currentGPS->longitude<<", "<<currentGPS->latitude;
+
     // Calculate the distances
     QMapIterator<QString, GPS> i(*othersList);
     while(i.hasNext())
@@ -240,7 +244,6 @@ void MainWindow::updateSlot()
         if(dist < maxDistance)
         {
             qDebug()<<"===============";
-            qDebug()<<currentGPS->longitude<< ", " <<currentGPS->latitude;
             qDebug()<<cardGPS.longitude<<", "<<cardGPS.latitude;
             qDebug()<<dist;
             qDebug()<<"===============";

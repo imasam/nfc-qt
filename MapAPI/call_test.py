@@ -126,8 +126,8 @@ def main():
             location_amap['longitude'] = longitude_10
             data['location_amap'] = location_amap
 
-        ret2 = api.place.around(types='150500|150600', location=amap_location_string, radius=1000)
-        ret3 = api.place.around(types='150700', location=amap_location_string, radius=1000)
+        ret2 = api.place.around(types='150500|150600', location=amap_location_string, radius=100)
+        ret3 = api.place.around(types='150700', location=amap_location_string, radius=100)
 
         data['metroStationCount'] = int(ret2.get('count'))
         data['busStationCount'] = int(ret3.get('count'))

@@ -37,10 +37,14 @@ GPS* JsonHelper::getCurrentGPS(bool system60)
 		value = obj.take("longitude");
         if (value.isDouble())
             gps->longitude = value.toDouble();
+        else if(value.isString())
+            gps->longitude = value.toString().toDouble();
 
 		value = obj.take("latitude");
         if (value.isDouble())
             gps->latitude = value.toDouble();
+        else if(value.isString())
+            gps->latitude = value.toString().toDouble();
 
         return gps;
 	}

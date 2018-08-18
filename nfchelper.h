@@ -32,15 +32,15 @@ private:
     nfc_device *pnd;
     char currentUid[9];         // Uid of the current card
 
-    static void print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter);
-    static bool is_first_block(uint32_t uiBlock);
-    static bool is_trailer_block(uint32_t uiBlock);
-    static uint32_t get_trailer_block(uint32_t uiFirstBlock);
-    static bool authenticate(uint32_t uiBlock);
-    static bool unlock_card(void);
-    static int get_rats(void);
-    static bool read_card(int read_unlocked);
-    static bool write_card(int write_block_zero);
+    void print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter);
+    bool is_first_block(uint32_t uiBlock);
+    bool is_trailer_block(uint32_t uiBlock);
+    uint32_t get_trailer_block(uint32_t uiFirstBlock);
+    bool authenticate(uint32_t uiBlock);
+    bool unlock_card(void);
+    int get_rats(void);
+    bool read_card(int read_unlocked);
+    bool write_card(int write_block_zero);
 
 };
 

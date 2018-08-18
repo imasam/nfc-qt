@@ -39,25 +39,11 @@ static bool bTolerateFailures;
 static bool magic2 = false;
 static bool unlocked = false;
 static uint8_t uiBlocks;
-static uint8_t keys[] = {
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-    0xd3, 0xf7, 0xd3, 0xf7, 0xd3, 0xf7,
-    0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5,
-    0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5,
-    0x4d, 0x3a, 0x99, 0xc3, 0x51, 0xdd,
-    0x1a, 0x98, 0x2c, 0x7e, 0x45, 0x9a,
-    0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0xab, 0xcd, 0xef, 0x12, 0x34, 0x56};
-static uint8_t default_key[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-static uint8_t default_acl[] = {0xff, 0x07, 0x80, 0x69};
 
 static const nfc_modulation nmMifare = {
     .nmt = NMT_ISO14443A,
     .nbr = NBR_106,
 };
-
-static size_t num_keys = sizeof(keys) / 6;
 
 uint8_t abtHalt[4] = {0x50, 0x00, 0x00, 0x00};
 
@@ -416,16 +402,14 @@ bool NfcHelper::transmit_bytes(const uint8_t *pbtTx, const size_t szTx)
  * mfclassic-BEGIN
  */
 
-static void
-NfcHelper::print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter)
+void NfcHelper::print_success_or_failure(bool bFailure, uint32_t *uiBlockCounter)
 {
     printf("%c", (bFailure) ? 'x' : '.');
     if (uiBlockCounter && !bFailure)
         *uiBlockCounter += 1;
 }
 
-static bool
-NfcHelper::is_first_block(uint32_t uiBlock)
+bool NfcHelper::is_first_block(uint32_t uiBlock)
 {
     // Test if we are in the small or big sectors
     if (uiBlock < 128)
@@ -434,8 +418,7 @@ NfcHelper::is_first_block(uint32_t uiBlock)
         return ((uiBlock) % 16 == 0);
 }
 
-static bool
-NfcHelper::is_trailer_block(uint32_t uiBlock)
+bool NfcHelper::is_trailer_block(uint32_t uiBlock)
 {
     // Test if we are in the small or big sectors
     if (uiBlock < 128)
@@ -444,8 +427,7 @@ NfcHelper::is_trailer_block(uint32_t uiBlock)
         return ((uiBlock + 1) % 16 == 0);
 }
 
-static uint32_t
-NfcHelper::get_trailer_block(uint32_t uiFirstBlock)
+uint32_t NfcHelper::get_trailer_block(uint32_t uiFirstBlock)
 {
     // Test if we are in the small or big sectors
     uint32_t trailer_block = 0;
@@ -460,8 +442,7 @@ NfcHelper::get_trailer_block(uint32_t uiFirstBlock)
     return trailer_block;
 }
 
-static bool
-NfcHelper::authenticate(uint32_t uiBlock)
+bool NfcHelper::authenticate(uint32_t uiBlock)
 {
     mifare_cmd mc;
 
@@ -493,8 +474,7 @@ NfcHelper::authenticate(uint32_t uiBlock)
     return false;
 }
 
-static bool
-NfcHelper::unlock_card(void)
+bool NfcHelper::unlock_card(void)
 {
     // Configure the CRC
     if (nfc_device_set_property_bool(pnd, NP_HANDLE_CRC, false) < 0)
@@ -545,8 +525,7 @@ NfcHelper::unlock_card(void)
     return true;
 }
 
-static int
-NfcHelper::get_rats(void)
+int NfcHelper::get_rats(void)
 {
     int res;
     uint8_t abtRats[2] = {0xe0, 0x50};
@@ -582,8 +561,7 @@ NfcHelper::get_rats(void)
     return res;
 }
 
-static bool
-NfcHelper::read_card(int read_unlocked)
+bool NfcHelper::read_card(int read_unlocked)
 {
     int32_t iBlock;
     bool bFailure = false;
@@ -684,8 +662,7 @@ NfcHelper::read_card(int read_unlocked)
     return true;
 }
 
-static bool
-NfcHelper::write_card(int write_block_zero)
+bool NfcHelper::write_card(int write_block_zero)
 {
     uint32_t uiBlock;
     bool bFailure = false;
@@ -914,7 +891,7 @@ bool NfcHelper::mfclassic(const char *command, const char *cardDataFile)
     print_nfc_target(&nt, false);
 
     // Guessing size
-    uiBlocks = 0xff;
+    uiBlocks = 0x3f;
 
     // Testing RATS
     int res;
@@ -931,7 +908,7 @@ bool NfcHelper::mfclassic(const char *command, const char *cardDataFile)
             magic2 = true;
         }
     }
-    printf("Guessing size: seems to be a %lu-byte card\n", (uiBlocks + 1) * sizeof(mifare_classic_block));
+    printf("Guessing size: seems to be a %lu-byte card\n", (unsigned long)((uiBlocks + 1) * sizeof(mifare_classic_block)));
 
     if (bUseKeyFile)
     {
