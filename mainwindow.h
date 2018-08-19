@@ -28,6 +28,10 @@ private slots:
 
     void on_btnDelete_clicked();
 
+    void on_btnStartConflictDemoMode_clicked();
+
+    void on_btnStopConflictDemoMode_clicked();
+
 private:
     void generateCards();                               // Generate some cards for test
     void applyNewCard(const QString& name);             // Apply new card to the real card

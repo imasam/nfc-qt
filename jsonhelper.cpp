@@ -27,6 +27,7 @@ GPS* JsonHelper::getCurrentGPS(bool system60)
 		GPS* gps = new GPS;
 		gps->longitude = 114.212970;
 		gps->latitude = 30.314324;
+        return gps;
 	}
 
 	QJsonObject obj = data;

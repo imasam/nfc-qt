@@ -7,6 +7,7 @@
 #include <QInputDialog>
 #include <QProcess>
 #include <QTimer>
+#include <QTime>
 #include <qmath.h>
 #include <QDebug>
 
@@ -122,7 +123,7 @@ void MainWindow::on_btnApply_clicked()
     if(QString::compare(selected, "WaterCard") == 0)
         nfcHelper->mfclassic("W", "./watercard.dump");
 
-    ui->btnApply->setText("Apply Selected Card");
+    ui->btnApply->setText("Apply");
     ui->btnApply->setEnabled(true);
 
     // 检测用户是否选择了系统推荐以外的卡
@@ -283,12 +284,16 @@ void MainWindow::updateSlot()
 
         // 检测冲突次数以决定是否更改推荐
         if(busCardName != nullptr       // 首先检测公交卡是否存在
-            && sqlHelper->queryConflictTime(othersName, busCardName, hour) >= threshold)
-            recommended = busCardName;
+            && sqlHelper->queryConflictTime(othersName, *busCardName, hour) >= threshold)
+            recommended = *busCardName;
         else if(subwayCardName != nullptr
-            && sqlHelper->queryConflictTime(othersName, subwayCardName, hour) >= threshold)
-            recommended = subwayCardName;
+            && sqlHelper->queryConflictTime(othersName, *subwayCardName, hour) >= threshold)
+            recommended = *subwayCardName;
     }
+    else if(existBus)
+        recommended = *busCardName;
+    else if(existSubway)
+        recommended = *subwayCardName;
 
     applyNewCard(recommended);          // 设置推荐卡
 }
@@ -339,4 +344,14 @@ void MainWindow::on_btnDelete_clicked()
     QListWidgetItem* item = ui->lstCard->currentItem();
     ui->lstCard->removeItemWidget(item);
     delete item;
+}
+
+void MainWindow::on_btnStartConflictDemoMode_clicked()
+{
+    jsonHelper->startConflictDemoMode();
+}
+
+void MainWindow::on_btnStopConflictDemoMode_clicked()
+{
+    jsonHelper->stopConflictDemoMode();
 }

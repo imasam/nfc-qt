@@ -162,7 +162,7 @@ int SqliteHelper::queryConflictTime(const QString &recommended, const QString &_
     query.exec("select time from conflict where "
                "recommended='" + recommended + "' and "
                "final='" + _final + "' and "
-               "hour=" + hour + ";");
+               "hour='" + QString::number(hour) + "';");
     if(query.next())
         return query.value(0).toInt();
 
@@ -177,10 +177,10 @@ bool SqliteHelper::increaseConflictTime(const QString &recommended, const QStrin
     int time = queryConflictTime(_final, recommended, hour);
     if(time > 0)
     {
-        if(!query.exec("UPDATE conflict SET time='" + (--time) + "' where"
+        if(!query.exec("UPDATE conflict SET time='" + QString::number(--time) + "' where "
                "recommended='" + _final + "' and "
                "final='" + recommended + "' and "
-               "hour=" + hour + ";");
+               "hour='" + QString::number(hour) + "';"))
         {
             goto errHandle;
         }
@@ -189,21 +189,21 @@ bool SqliteHelper::increaseConflictTime(const QString &recommended, const QStrin
     qDebug()<<_final<<", "<<recommended<<","<<hour<<","<<time;
 
     // 如果没有反过来则次数+1
-    time = = queryConflictTime(recommended, _final, hour);
-    if(time == -1)      // 数据库中不存在此纪录，则增加一条记录
+    time = queryConflictTime(recommended, _final, hour);
+    if(time == -1)          // 数据库中不存在此纪录，则增加一条记录
     {
         if(!query.exec("INSERT INTO conflict(recommended,final,hour,time) VALUES('"
-        + recommended + "','" + _final + "','" + hour + "','1');"))
+        + recommended + "','" + _final + "','" + QString::number(hour) + "','1');"))
         {
             goto errHandle;
         }
     }
-    else if(time < 3)    // 最大值为3，大于等于3不再增加
+    else if(time == 1)      // 最大值为3，大于等于3不再增加
     {
-        if(!query.exec("UPDATE conflict SET time='" + (++time) + "' where"
+        if(!query.exec("UPDATE conflict SET time='3' where "
                "recommended='" + recommended + "' and "
                "final='" + _final + "' and "
-               "hour=" + hour + ";");
+               "hour='" + QString::number(hour) + "';"))
         {
             goto errHandle;
         }
