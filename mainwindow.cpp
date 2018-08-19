@@ -115,20 +115,27 @@ void MainWindow::on_btnApply_clicked()
         nfcHelper->mfclassic("W", "./empty.dump");
     }
 
-    QString name = ui->lstCard->currentItem()->text();
-    applyNewCard(name);
+    QString selected = ui->lstCard->currentItem()->text();
+    applyNewCard(selected);
 
     // If the selected is waterCard, save the data of waterCard
-    if(QString::compare(name, "WaterCard") == 0)
+    if(QString::compare(selected, "WaterCard") == 0)
         nfcHelper->mfclassic("W", "./watercard.dump");
 
     ui->btnApply->setText("Apply Selected Card");
     ui->btnApply->setEnabled(true);
+
+    // 检测用户是否选择了系统推荐以外的卡
+    if(selected != recommended)     // 是，冲突次数+1
+    {
+        int hour = QTime::currentTime().hour();
+        sqlHelper->increaseConflictTime(recommended, selected, hour);
+    }
 }
 
 void MainWindow::applyNewCard(const QString& name)
 {
-    if(name == nullptr) return;
+    if(name == nullptr || name == "") return;
 
     char* uid = sqlHelper->queryUid(name);
 
@@ -239,6 +246,10 @@ void MainWindow::updateSlot()
 
     qDebug()<<currentGPS->longitude<<", "<<currentGPS->latitude;
 
+    QString othersName = "";
+    bool existBus = jsonHelper->existBus();
+    bool existSubway = jsonHelper->existSubway();
+
     // Calculate the distances
     QMapIterator<QString, GPS> i(*othersList);
     while(i.hasNext())
@@ -251,25 +262,35 @@ void MainWindow::updateSlot()
         {
             qDebug()<<"===============";
             qDebug()<<cardGPS.longitude<<", "<<cardGPS.latitude;
-            qDebug()<<dist;
+            qDebug()<<"Distance: "<<dist;
             qDebug()<<"===============";
 
-            applyNewCard(name);
-            return;
+            othersName = name;
+            break;
         }
     }
 
-    if(jsonHelper->existBus() && busCardName)
+    /*
+     * 既处于其它种类卡范围内也处于公交站或地铁站范围内时进行卡选择判决
+     * 默认推荐其它种类卡
+     * 当推荐其它种类卡但用户选择公交卡或地铁卡的次数大于等于阈值时，不推荐其它种类卡
+     */
+    recommended = othersName;       // 默认推荐其它种类卡
+    if(othersName != "" && (existBus || existSubway))
     {
-        applyNewCard(*busCardName);
-        return;
+        int hour = QTime::currentTime().hour();
+        static const int threshold = 2;
+
+        // 检测冲突次数以决定是否更改推荐
+        if(busCardName != nullptr       // 首先检测公交卡是否存在
+            && sqlHelper->queryConflictTime(othersName, busCardName, hour) >= threshold)
+            recommended = busCardName;
+        else if(subwayCardName != nullptr
+            && sqlHelper->queryConflictTime(othersName, subwayCardName, hour) >= threshold)
+            recommended = subwayCardName;
     }
 
-    if(jsonHelper->existSubway() && subwayCardName)
-    {
-        applyNewCard(*subwayCardName);
-        return;
-    }
+    applyNewCard(recommended);          // 设置推荐卡
 }
 
 double MainWindow::getDistance(GPS* gps1, GPS* gps2)

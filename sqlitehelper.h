@@ -19,6 +19,16 @@ public:
     QString* querySubwayCardName();
     QMap<QString, GPS>* queryOthersList();                      // Get the list of cards whose category is others
 
+    /*
+     * 查询 在时间为hour时，推荐为recommended但用户选择_final的次数
+     * 返回-1表示不存在此纪录
+     */
+    int queryConflictTime(const QString &recommended, const QString &_final, int hour);
+    /*
+     * 在时间为hour时，推荐为recommended但用户选择_final的次数加1
+     */
+    bool increaseConflictTime(const QString &recommended, const QString &_final, int hour);
+
 private:
     bool initTable();
 

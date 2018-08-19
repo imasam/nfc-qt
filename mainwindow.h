@@ -53,6 +53,8 @@ private:
     QString* busCardName;
     QString* subwayCardName;
     QMap<QString, GPS>* othersList;
+
+    QString recommended;    // 系统推荐按的卡名字
 };
 
 #endif // MAINWINDOW_H

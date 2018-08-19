@@ -16,9 +16,12 @@ public:
 	bool existBus();
 	bool existSubway();
     bool init(QString filePath);
+	void startConflictDemoMode();		// 开启冲突演示模式
+	void stopConflictDemoMode();		// 关闭冲突演示模式
 
 private:
     QJsonObject data;
+	bool isConflictDemoMode = false;	// 冲突演示模式是否开启
 };
 
 #endif

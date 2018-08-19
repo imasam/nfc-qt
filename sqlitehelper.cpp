@@ -51,10 +51,9 @@ bool SqliteHelper::initTable()
     }
 
     if(!query.exec("CREATE TABLE IF NOT EXISTS  conflict ("
-                        "cardA VARCHAR(8) NOT NULL,
-                        "cardB VARCHAR(8) NOT NULL,
-                        "chosen VARCHAR(8) NOT NULL,
-                        "hour INTEGER NOT NULL,
+                        "recommended VARCHAR(8) NOT NULL,"
+                        "final VARCHAR(8) NOT NULL,"
+                        "hour INTEGER NOT NULL,"
                         "time INTEGER NOT NULL);"))
     {
         qDebug()<<query.lastError();
@@ -157,26 +156,67 @@ QString* SqliteHelper::querySubwayCardName()
     return nullptr;
 }
 
-int SqliteHelper::queryConflictTime(const QString &cardA, const QString &cardB,
-                                     const QString &chosen, int hour)
+int SqliteHelper::queryConflictTime(const QString &recommended, const QString &_final,
+                                    int hour)
 {
     query.exec("select time from conflict where "
-               "cardA='" + cardA + "',");
+               "recommended='" + recommended + "' and "
+               "final='" + _final + "' and "
+               "hour=" + hour + ";");
     if(query.next())
-    {
-        QString* name = new QString(query.value(0).toString());
+        return query.value(0).toInt();
 
-        return name;
-    }
-
-    return nullptr;
-    return 0;
+    return -1;      // 不存在记录
 }
 
-bool SqliteHelper::insertConflict(const QString &cardA, const QString &cardB,
-                                  const QString &chosen, int hour)
+// 在时间为hour时，推荐为recommended但用户选择_final的次数加1
+bool SqliteHelper::increaseConflictTime(const QString &recommended, const QString &_final,
+                                    int hour)
 {
+    // 如果recommended和_final在数据库中反过来则说明实为次数-1
+    int time = queryConflictTime(_final, recommended, hour);
+    if(time > 0)
+    {
+        if(!query.exec("UPDATE conflict SET time='" + (--time) + "' where"
+               "recommended='" + _final + "' and "
+               "final='" + recommended + "' and "
+               "hour=" + hour + ";");
+        {
+            goto errHandle;
+        }
+    }
 
+    qDebug()<<_final<<", "<<recommended<<","<<hour<<","<<time;
+
+    // 如果没有反过来则次数+1
+    time = = queryConflictTime(recommended, _final, hour);
+    if(time == -1)      // 数据库中不存在此纪录，则增加一条记录
+    {
+        if(!query.exec("INSERT INTO conflict(recommended,final,hour,time) VALUES('"
+        + recommended + "','" + _final + "','" + hour + "','1');"))
+        {
+            goto errHandle;
+        }
+    }
+    else if(time < 3)    // 最大值为3，大于等于3不再增加
+    {
+        if(!query.exec("UPDATE conflict SET time='" + (++time) + "' where"
+               "recommended='" + recommended + "' and "
+               "final='" + _final + "' and "
+               "hour=" + hour + ";");
+        {
+            goto errHandle;
+        }
+    }
+    
+    qDebug()<<recommended<<", "<<_final<<","<<hour<<","<<time;
+
+    return true;
+
+errHandle:
+    qDebug()<<query.lastError();
+    qDebug()<<query.lastQuery();
+    return false;
 }
 
 bool SqliteHelper::setCurrentName(const QString &name)

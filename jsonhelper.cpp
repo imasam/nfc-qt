@@ -18,10 +18,17 @@ bool JsonHelper::init(QString filePath)
 }
 
 /*
- * ªÒ»°µ±«∞GPS◊¯±Í
+ * Ëé∑ÂèñÂΩìÂâçGPSÂùêÊ†á
  */
 GPS* JsonHelper::getCurrentGPS(bool system60)
 {
+	if(isConflictDemoMode)
+	{
+		GPS* gps = new GPS;
+		gps->longitude = 114.212970;
+		gps->latitude = 30.314324;
+	}
+
 	QJsonObject obj = data;
 
 	QJsonValue value;
@@ -53,10 +60,12 @@ GPS* JsonHelper::getCurrentGPS(bool system60)
 }
 
 /*
- * π´Ωª’æ
+ * ÂÖ¨‰∫§Á´ô
  */
 bool JsonHelper::existBus()
 {
+	if(isConflictDemoMode) return true;
+
 	bool existBus = false;
 
 	QJsonValue value = data.take("busStationCount");
@@ -67,10 +76,12 @@ bool JsonHelper::existBus()
 }
 
 /*
-* µÿÃ˙’æ
+* Âú∞ÈìÅÁ´ô
 */
 bool JsonHelper::existSubway()
 {
+	if(isConflictDemoMode) return true;
+
 	bool existSubway = false;
 
 	QJsonValue value = data.take("metroStationCount");
@@ -78,5 +89,15 @@ bool JsonHelper::existSubway()
 		existSubway = true;
 
 	return existSubway;
+}
+
+void JsonHelper::startConflictDemoMode()
+{
+	isConflictDemoMode = true;
+}
+
+void JsonHelper::stopConflictDemoMode()
+{
+	isConflictDemoMode = false;
 }
 
