@@ -198,7 +198,7 @@ bool SqliteHelper::increaseConflictTime(const QString &recommended, const QStrin
             goto errHandle;
         }
     }
-    else if(time == 1)      // 最大值为3，大于等于3不再增加
+    else if(time == 1)      // 次数为1则之前用户已手动切换过1次，将次数修改为3
     {
         if(!query.exec("UPDATE conflict SET time='3' where "
                "recommended='" + recommended + "' and "
