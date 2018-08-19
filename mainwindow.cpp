@@ -107,15 +107,19 @@ void MainWindow::on_btnApply_clicked()
     ui->btnApply->repaint();
 
     // If the current is waterCard, save the data of waterCard
+    // and restore the empty card
     QString currentName =  ui->lblCurrentCard->text();
-    if(currentName.compare("WaterCard"))
+    if(QString::compare(currentName, "WaterCard") == 0)
+    {
         nfcHelper->mfclassic("R", "./watercard.dump");
+        nfcHelper->mfclassic("W", "./empty.dump");
+    }
 
     QString name = ui->lstCard->currentItem()->text();
     applyNewCard(name);
 
     // If the selected is waterCard, save the data of waterCard
-    if(name.compare("WaterCard"))
+    if(QString::compare(name, "WaterCard") == 0)
         nfcHelper->mfclassic("W", "./watercard.dump");
 
     ui->btnApply->setText("Apply Selected Card");
@@ -124,6 +128,8 @@ void MainWindow::on_btnApply_clicked()
 
 void MainWindow::applyNewCard(const QString& name)
 {
+    if(name == nullptr) return;
+
     char* uid = sqlHelper->queryUid(name);
 
     qDebug()<<"Apply a new card:";
@@ -282,4 +288,34 @@ double MainWindow::getDistance(GPS* gps1, GPS* gps2)
 double MainWindow::rad(double d)
 {
     return d * M_PI / 180.00; //角度转换成弧度
+}
+
+void MainWindow::on_btnDelete_clicked()
+{
+    if(ui->lstCard->currentItem() == nullptr)
+        return;
+
+    QString name = ui->lstCard->currentItem()->text();
+    int  result = QMessageBox::question(this, "Delete", "Are you sure to delete" + name, QMessageBox::Ok|QMessageBox::Cancel,
+                          QMessageBox::Cancel);
+    if(result == QMessageBox::Cancel)       // Cancel is clicked
+        return;
+
+    if(!sqlHelper->deleteCard(name))
+        QMessageBox::about(this, "Fault", "Fail to delete the selected card.");
+
+    if(subwayCardName == name)
+    {
+        delete subwayCardName;
+        subwayCardName = nullptr;
+    }
+    if(busCardName == name)
+    {
+        delete busCardName;
+        busCardName = nullptr;
+    }
+    othersList->remove(name);
+    QListWidgetItem* item = ui->lstCard->currentItem();
+    ui->lstCard->removeItemWidget(item);
+    delete item;
 }

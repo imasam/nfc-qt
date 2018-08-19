@@ -26,6 +26,8 @@ private slots:
     void on_btnAdd_clicked();
     void updateSlot();
 
+    void on_btnDelete_clicked();
+
 private:
     void generateCards();                               // Generate some cards for test
     void applyNewCard(const QString& name);             // Apply new card to the real card

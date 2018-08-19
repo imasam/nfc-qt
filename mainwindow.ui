@@ -82,14 +82,21 @@
       <item>
        <widget class="QPushButton" name="btnAdd">
         <property name="text">
-         <string>Add New Card</string>
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnDelete">
+        <property name="text">
+         <string>Delete</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btnApply">
         <property name="text">
-         <string>Apply Selected Card</string>
+         <string>Apply</string>
         </property>
        </widget>
       </item>

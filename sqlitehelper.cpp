@@ -50,6 +50,18 @@ bool SqliteHelper::initTable()
         return false;
     }
 
+    if(!query.exec("CREATE TABLE IF NOT EXISTS  conflict ("
+                        "cardA VARCHAR(8) NOT NULL,
+                        "cardB VARCHAR(8) NOT NULL,
+                        "chosen VARCHAR(8) NOT NULL,
+                        "hour INTEGER NOT NULL,
+                        "time INTEGER NOT NULL);"))
+    {
+        qDebug()<<query.lastError();
+        qDebug()<<query.lastQuery();
+        return false;
+    }
+
     return true;
 }
 
@@ -57,6 +69,19 @@ bool SqliteHelper::insertCard(const QString& category, const QString& name, cons
 {
     if(!query.exec("INSERT INTO card(category,name,uid,longitude,latitude) VALUES('"
                    + category + "','" + name + "','" + uid + "'," + QString::number(longitude) + "," + QString::number(latitude) +");"))
+    {
+        qDebug()<<query.lastError();
+        qDebug()<<query.lastQuery();
+        return false;
+    }
+    else
+        qDebug()<<query.lastQuery();
+        return true;
+}
+
+bool SqliteHelper::deleteCard(const QString& name)
+{
+    if(!query.exec("DELETE FROM card where name='" + name + "';"))
     {
         qDebug()<<query.lastError();
         qDebug()<<query.lastQuery();
@@ -130,6 +155,28 @@ QString* SqliteHelper::querySubwayCardName()
     }
 
     return nullptr;
+}
+
+int SqliteHelper::queryConflictTime(const QString &cardA, const QString &cardB,
+                                     const QString &chosen, int hour)
+{
+    query.exec("select time from conflict where "
+               "cardA='" + cardA + "',");
+    if(query.next())
+    {
+        QString* name = new QString(query.value(0).toString());
+
+        return name;
+    }
+
+    return nullptr;
+    return 0;
+}
+
+bool SqliteHelper::insertConflict(const QString &cardA, const QString &cardB,
+                                  const QString &chosen, int hour)
+{
+
 }
 
 bool SqliteHelper::setCurrentName(const QString &name)
